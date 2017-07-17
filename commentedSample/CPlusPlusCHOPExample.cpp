@@ -163,18 +163,40 @@ CPlusPlusCHOPExample::~CPlusPlusCHOPExample()
 
 }
 
+//		<<LearnC++>>  This function lets you set the general info for the CHOP. 
 void
 CPlusPlusCHOPExample::getGeneralInfo(CHOP_GeneralInfo* ginfo)
 {
+	/*		
+			<<LearnC++>>  ginfo is passed in as a argument. 
+			Here we can alter the properties of ginfo with the following syntax:
+				
+				object->member = var
+
+			In this case the object is ginfo; the members are cookEveryFrameIfAsked, timeslice, and inputMatchIndex.
+			More info can be found in CHOP_CPlusPlusBase.h lines 48-90.
+	*/
+
 	// This will cause the node to cook every frame
 	ginfo->cookEveryFrameIfAsked = true;
 	ginfo->timeslice = true;
 	ginfo->inputMatchIndex = 0;
 }
 
+
+//		<<LearnC++>>  This function lets you set the output info for the CHOP
 bool
 CPlusPlusCHOPExample::getOutputInfo(CHOP_OutputInfo* info)
 {
+	/*
+			<<LearnC++>>  info is passed in as a argument.
+			Here we can alter the properties of info with the following syntax:
+
+			object->member = var
+
+			The CHOP_OutputInfo object has many members. Much more info can be found in CHOP_CPlusPlusBase.h lines 93-130.
+	*/
+
 	// If there is an input connected, we are going to match it's channel names etc
 	// otherwise we'll specify our own.
 	if (info->opInputs->getNumInputs() > 0)
@@ -196,25 +218,56 @@ CPlusPlusCHOPExample::getOutputInfo(CHOP_OutputInfo* info)
 	}
 }
 
+
+//		<<LearnC++>>  This function is called for each channel. The index of the channel should be used to switch or lookup a name.
 const char*
 CPlusPlusCHOPExample::getChannelName(int32_t index, void* reserved)
 {
+	//		<<LearnC++>> TouchDesigner will actually augment this to be chan1, chan2, chan3 when returned multiple times. 
 	return "chan1";
 }
+
+
+/*		
+		<<LearnC++>>  
+		Here is the magic function. This is the definition that will return the outputs for the CHOP.
+		Let's breakdown the arguments passed into this function:
+			
+			CHOP_Output* output			is a pointer to a CHOP_Output object. More info at CHOP_CPlusPlusBase.h lines 134-167.
+			OP_Inputs* inputs			is a pointer to a OP_Inputs object. More info at CPlusPlus_Common.h lines 257-338.
+			void* reserved				is for future use by Derivative.
+
+		These objects all have members which we can get and set information to. These objects are created by TouchDesigner using the 
+		previous functions defined in this .cpp and the CHOP_CPlusPlusBase.h file. In order to manipulate the outputs, we must set them to 
+		something different in this function. 
+
+		I will comment more about this inline below.
+
+*/
 
 void
 CPlusPlusCHOPExample::execute(const CHOP_Output* output,
 							  OP_Inputs* inputs,
 							  void* reserved)
 {
+	//		<<LearnC++>>  This will increment a counter each time the execute is called. Nice debugging tool to make sure the DLL is actually working, but not essential. 
 	myExecuteCount++;
 	
+	//		<<LearnC++>>  This is an example of how to get data from the inputs. Here we are grabbing the parameter labeled "Scale".
 	double	 scale = inputs->getParDouble("Scale");
 
+	
+	/*		
+			<<LearnC++>>  Below is a conditional which looks to see how many input channels there are. The there are more that 0, we will complete the 
+			nested code. 
+	*/
 	// In this case we'll just take the first input and re-output it scaled.
 
 	if (inputs->getNumInputs() > 0)
 	{
+
+		//		<<LearnC++>>  Below we will disable to the parameters not being used. This will prevent them from using cycles to read them.
+
 		// We know the first CHOP has the same number of channels
 		// because we returned false from getOutputInfo. 
 
@@ -223,25 +276,44 @@ CPlusPlusCHOPExample::execute(const CHOP_Output* output,
 		inputs->enablePar("Shape", 0);	// not used
 
 		int ind = 0;
+
+		//		<<LearnC++>>  We have two for loops here in order to iterate through each channel and each sample in the channel.
 		for (int i = 0 ; i < output->numChannels; i++)
 		{
 			for (int j = 0; j < output->numSamples; j++)
 			{
+				//		<<LearnC++>>  Here we are getting the input CHOP at the first input index. 
 				const OP_CHOPInput	*cinput = inputs->getInputCHOP(0);
+				/*		
+						<<LearnC++>>  Here we are actually setting the output channels to a scaled version of the input channels. 
+						Note the syntax:
+							output->channels[ channel index ][ sample index ]
+						
+						This is set to the input channel/sample multiplied by scale.
+						"ind" is a wrapped value which is increment below if the input samples are shorter than the output samples. 
+				*/
 				output->channels[i][j] = float(cinput->getChannelData(i)[ind] * scale);
+				//		<<LearnC++>>  Increment ind to step through the next sample.
 				ind++;
 
+				//		<<LearnC++>>  The Modulus operator wraps back around. 
 				// Make sure we don't read past the end of the CHOP input
 				ind = ind % cinput->numSamples;
+
+				//		<<LearnC++>>  End of the nested loop that handles samples.
 			}
+			//		<<LearnC++>>  End of the loop that handles channels.
 		}
 
 	}
+	//		<<LearnC++>>  Below is what happens if not inputs are connected. If inputs->getNumInputs() <= 0.
 	else // If not input is connected, lets output a sine wave instead
 	{
+		//		<<LearnC++>>  Enable the parameters incase they were disabled before. 
 		inputs->enablePar("Speed", 1);
 		inputs->enablePar("Reset", 1);
 
+		//		<<LearnC++>>  Grab the parameter labeled "Speed"
 		double speed = inputs->getParDouble("Speed");
 		double step = speed * 0.01f;
 
@@ -258,14 +330,14 @@ CPlusPlusCHOPExample::execute(const CHOP_Output* output,
 		// Since we are outputting at 120, for each frame that has passed we'll be
 		// outputing 2 samples (assuming the timeline is running at 60hz).
 
-
+		//		<<LearnC++>>  This should look familiar to what is above. Two for loops, one for channel and one for samples. 
 		for (int i = 0; i < output->numChannels; i++)
 		{
 			double offset = myOffset + phase*i;
 
 
 			double v = 0.0f;
-
+			//		<<LearnC++>>  This switch case detirmines the shape the waveform will have. This is grabbed from a paramter on line 321.
 			switch(shape)
 			{
 				case 0:		// sine
@@ -286,6 +358,7 @@ CPlusPlusCHOPExample::execute(const CHOP_Output* output,
 
 			for (int j = 0; j < output->numSamples; j++)
 			{
+				//		<<LearnC++>>  Data is passed into the channels/samples here.
 				output->channels[i][j] = float(v);
 				offset += step;
 			}
@@ -293,6 +366,16 @@ CPlusPlusCHOPExample::execute(const CHOP_Output* output,
 
 		myOffset += step * output->numSamples; 
 	}
+	/*
+			<<LearnC++>>
+			It's important to remember that this function is called each time the operator cooks.
+			To avoid memory overflow or other more serious problems - be sure to deallocate any memory you might have used before returning.
+			This example does not use any complex data structures and will reuse the same memory each time its called so it will not overflow. 
+
+			Another important thing to remember is that memory is not guarenteed to persist to the next time the function is called. If you need this 
+			type of capability create a private variable the belongs to the class and set it before returning. You can access it on the next function call. 
+
+	*/
 }
 
 int32_t
