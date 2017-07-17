@@ -378,6 +378,7 @@ CPlusPlusCHOPExample::execute(const CHOP_Output* output,
 	*/
 }
 
+//		<<LearnC++>>  This function allows us to set the number of channels to output to an Info CHOP.   
 int32_t
 CPlusPlusCHOPExample::getNumInfoCHOPChans()
 {
@@ -386,6 +387,8 @@ CPlusPlusCHOPExample::getNumInfoCHOPChans()
 	return 2;
 }
 
+
+//		<<LearnC++>>  Sets the Info CHOP data. For more info on OP_InfoCHOPChan reference CPlusPlus_Common.h line 340-347.
 void
 CPlusPlusCHOPExample::getInfoCHOPChan(int32_t index,
 										OP_InfoCHOPChan* chan)
@@ -406,6 +409,7 @@ CPlusPlusCHOPExample::getInfoCHOPChan(int32_t index,
 	}
 }
 
+//		<<LearnC++>>  This funciton is called to set the Info DAT size. More info available in CPlusPlus_Common.h lines 349-369.
 bool		
 CPlusPlusCHOPExample::getInfoDATSize(OP_InfoDATSize* infoSize)
 {
@@ -417,6 +421,7 @@ CPlusPlusCHOPExample::getInfoDATSize(OP_InfoDATSize* infoSize)
 	return true;
 }
 
+//		<<LearnC++>>  This function sets the Info DAT data. There is some precompiler trickery in here in order to make this compatable with macOS. More info in CPlusPlus_Common.h lines 371-384.
 void
 CPlusPlusCHOPExample::getInfoDATEntries(int32_t index,
 										int32_t nEntries,
@@ -467,9 +472,35 @@ CPlusPlusCHOPExample::getInfoDATEntries(int32_t index,
 	}
 }
 
+/*		
+		<<LearnC++>>  
+		Here is the next really important one for make super customized CPlusPlus CHOPs. This function allows us to set up custom parameters that we can
+		access from within other function called defined above. 
+*/
 void
 CPlusPlusCHOPExample::setupParameters(OP_ParameterManager* manager)
 {
+	/*
+			<<LearnC++>>
+			Below 4 parameters are defined. Note the syntax below:
+				
+				{															// This bracket is used to declare the scope of the variables inside.
+					TypeOfParameter np;										// TypeOfParameter is one of the parameter objects defined in CPlusPlus_Common.h lines 388-457
+
+					np.member1 = var;										// Members of the parameter are set here. 
+					np.member2 = var;
+					np.member3 = var;
+
+					OP_ParAppendResult res = manager->appendType(np);		// appendType is different for each type of parameter you try to append. More info in CPlusPlus_Common.h lines 475-509. 
+					assert(res == OP_ParAppendResult::Success);				// Assert means to check if the condition is true - if it isn't stop the program. This checks to make sure we have append the parameter.
+				}															// Ends the scope.
+
+			We do this once for each parameter we want to create. 
+			
+	*/
+
+
+
 	// speed
 	{
 		OP_NumericParameter	np;
@@ -527,6 +558,7 @@ CPlusPlusCHOPExample::setupParameters(OP_ParameterManager* manager)
 
 }
 
+//		<<LearnC++>>  This is a function which is called when a pulse is pressed. The name for the pulsed is passed in and should be checked for in order to do an operation.
 void 
 CPlusPlusCHOPExample::pulsePressed(const char* name)
 {
