@@ -54,6 +54,16 @@ this mostly to fill in the gaps in my own knowledge.
 		<<LearnC++>>
 		To start the commentary - please start in the "CPlusPlusCHOPExample.h" file.
 
+		After reviewing the commentary in the header file procede below:
+
+		The .cpp file is where the code that will be executed is written. For the sake of simplicity
+		we can think of the header as specifing what object will be written and the .cpp file is what the
+		object does. In reality, to the compiler there is very little difference between a .cpp and a .h
+		and functions can be written in the .h if need as in the CHOP_CPlusPlusBase.h
+
+		Below you will see the includes for the header files nessecary for the example, including the 
+		CPlusPlusCHOPExample.h.
+
 */
 
 
@@ -62,6 +72,32 @@ this mostly to fill in the gaps in my own knowledge.
 #include <string.h>
 #include <math.h>
 #include <assert.h>
+
+
+
+
+/*
+		<<LearnC++>>
+		Below you will see some interesting syntax which gives us a clue how TouchDesigner uses our .DLL file. 
+
+		Here is a simplified version so we can look at the indivdual elements:
+
+		extern "C"                //  This tells the compiler that the functions declared here are 'C' linked. Allows TouchDesigner to call this function without sorting through the extra garbage that C++ will add. 
+		{
+			DLLEXPORT			  //  This is a macro which hides some more complicated / scary looking code for DLL Export. This tells the compiler that outside programs(i.e. TouchDesigner) can use this function.  
+			SomeFunction()		  //  This is the actual function which will be called from the DLL.
+			{	
+			}
+		}
+
+		Notice that there are only three functions actually exported in the DLL:
+			GetCHOPAPIVersion( void )						//Returns API Version
+			CreateCHOPInstance( OP_NodeInfo )				//Returns instance of the CPlusPlusExample object we are writing.
+			DestroyCHOPInstance( CHOP_CPlusPlusBase )		//Deletes the instance of the CPlusPlusExample object passed as an argument. 
+
+		These are accessed by TouchDesigner when you create or delete a CPlusPlus CHOP that uses this DLL.  
+*/
+
 
 // These functions are basic C function, which the DLL loader can find
 // much easier than finding a C++ Class.
@@ -100,12 +136,28 @@ DestroyCHOPInstance(CHOP_CPlusPlusBase* instance)
 };
 
 
+
+
+/*
+		<<LearnC++>>
+		Below is where the functions for our new object are written out. These functions are not visible on the
+		DLL export table, however TouchDesigner can call them after the instance of the CPlusPlusCHOPExample is created.
+		This is why they need to have the same naming convention, so TouchDesigner know what to expect when 
+		calling a specific function.
+
+		I will leave comments inline to describe the process and point out specific important steps.  		
+*/
+
+
+
+//		<<LearnC++>>  This is the function definition for the constructor. Within this function we define our private variables. 
 CPlusPlusCHOPExample::CPlusPlusCHOPExample(const OP_NodeInfo* info) : myNodeInfo(info)
 {
 	myExecuteCount = 0;
 	myOffset = 0.0;
 }
 
+//		<<LearnC++>>  This is the function definition for the de-constructor. Generally nothing happens here. If you open a socket or port connection - you would close it here. 
 CPlusPlusCHOPExample::~CPlusPlusCHOPExample()
 {
 

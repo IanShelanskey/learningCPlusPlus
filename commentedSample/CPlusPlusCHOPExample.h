@@ -18,7 +18,7 @@
  | |      / _  )/ _  | / ___)|  _ \ | ||  _ \  / _  |  | |        (_   _)(_   _)
  | |_____( (/ /( ( | || |    | | | || || | | |( ( | |  | \_____     |_|    |_|
  |_______)\____)\_||_||_|    |_| |_||_||_| |_| \_|| |   \______)
- (_____|
+											  (_____|
  Hi there,
  I am going to take the time to learn the CPlusPlus TOPs and CHOPs in TouchDesigner.
  My hope is to go through and make plain explanations of how the code is working in
